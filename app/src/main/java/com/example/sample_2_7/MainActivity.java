@@ -8,6 +8,7 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.hardware.Camera;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.SoundPool;
@@ -36,6 +37,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //    HashMap<Integer,Integer> mSoundPoolMap;
 
     private String path = "/sdcard/bbb.3gp";
+    private Camera mCamera;
     private Button playButton;
     private Button pauseButton;
     private boolean isPause = false;
@@ -78,7 +80,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void requestPermission(){
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
             if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-                    ContextCompat.checkSelfPermission(this,Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
+                    ContextCompat.checkSelfPermission(this,Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(this,Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED){
 
             }else{
                 ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
@@ -91,7 +94,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if(requestCode == 1){
             if(ActivityCompat.checkSelfPermission(this,Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-                    ContextCompat.checkSelfPermission(this,Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
+                    ContextCompat.checkSelfPermission(this,Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(this,Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED){
 
             }else{
                 Toast.makeText(this, "存储权限获取失败", Toast.LENGTH_SHORT).show();
@@ -138,8 +142,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //            mSoundPool.pause(1);
 //        }
         if(v == playButton){
-            isPause = false;
-            playVideo(path);
+//            isPause = false;
+//            playVideo(path);
+            initCamera();
+        }else if(v == pauseButton){
+            if(isPause == false){
+                mMediaPlayer.pause();
+                isPause = true;
+            }else{
+                mMediaPlayer.start();
+                isPause = false;
+            }
         }
     }
     private void playVideo(String path){
@@ -154,6 +167,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             e.printStackTrace();
         }
         mMediaPlayer.start();
+    }
+    private void initCamera(){
+        if(!isPause){
+            mCamera = android.hardware.Camera.open();
+            if(mCamera != null && !isPause){
+                try{
+                    mCamera.setPreviewDisplay(mSurfaceHolder);
+                    mCamera.startPreview();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                isPause = true;
+            }
+        }
     }
 
     @Override
